@@ -1,0 +1,77 @@
+---
+title: "lab_notebook_clean_python"
+author: "Nick Spies, MD"
+format: html
+editor: visual
+---
+
+```{python}
+
+import pandas as pd
+import numpy as np
+
+# Define data paths
+data_path = "~/git/Pattern/data/MedrioExport202312211002/"
+figure_path = "../../../figures/multicenter_study/"
+
+# Read in Excel files and handle missing values
+enrollment_data = pd.read_excel(f"{data_path}LRT Enrollment_Collection_Site.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+collection_data = pd.read_excel(f"{data_path}LRT_Enrollment_.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+
+# Culture data with ordered categorical variable
+culture_data = pd.read_excel(f"{data_path}Reference_LRT_Culture_Results.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+culture_data['LRT_REF_RPT_BIN'] = pd.Categorical(culture_data['LRT_REF_RPT_BIN'], 
+                                                 categories=["<1,000", "1,000-10,000", "10,000-100,000", ">100,000"], 
+                                                 ordered=True)
+
+# Repeat culture data
+repeat_culture_data = pd.read_excel(f"{data_path}Reference_LRT_Culture_Results_Repeat.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+
+# Gram stain data with multiple ordered categorical variables
+gram_stain_data = pd.read_excel(f"{data_path}Reference_LRT_Gram Stain.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+
+# Update categorical variables
+plasma_organism_columns = gram_stain_data.filter(regex="PLS_AMT|ORG_AMT").columns
+epi_cell_columns = gram_stain_data.filter(regex="EPI|CELL|RBC").columns
+
+# Apply ordered factors for PLS_AMT, ORG_AMT columns
+gram_stain_data[plasma_organism_columns] = gram_stain_data[plasma_organism_columns].apply(
+    lambda x: pd.Categorical(x, categories=["None", "Rare", "Few", "Moderate", "Abundant"], ordered=True))
+
+# Apply ordered factors for EPI, CELL, RBC columns
+gram_stain_data[epi_cell_columns] = gram_stain_data[epi_cell_columns].apply(
+    lambda x: pd.Categorical(x, categories=["None", "Few", "Abundant"], ordered=True))
+
+# Replace patterns in LRT_REF_GS_MORPH
+gram_stain_data['LRT_REF_GS_MORPH'] = gram_stain_data['LRT_REF_GS_MORPH'].str.replace(
+    r"in clusters|in pairs and chains|in pairs|and pseudohyphae", "", regex=True)
+
+# Reorder LRT_REF_GS_MORPH based on frequency
+gram_stain_data['LRT_REF_GS_MORPH'] = pd.Categorical(gram_stain_data['LRT_REF_GS_MORPH'],
+                                                     ordered=True).reorder_categories(
+                                                     gram_stain_data['LRT_REF_GS_MORPH'].value_counts().index)
+
+# Repeat gram stain data
+repeat_gram_stain_data = pd.read_excel(f"{data_path}Reference_LRT_Gram Stain_Repeat.xlsx", na_values=["NA", "<NA>", "N/A", "n/a"])
+
+# Read in the group_gram_morph_map and clean data
+group_gram_morph_map = pd.read_csv(f"{data_path}../group_gram_morph_map.txt", delimiter='\t').applymap(lambda x: x.strip()).drop_duplicates()
+
+# Apply transformations for Morphology and Gram categories
+group_gram_morph_map['Morphology'] = group_gram_morph_map['Morphology'].str.capitalize()
+
+group_gram_morph_map['gram'] = np.select(
+    [group_gram_morph_map['Gram stain'].str.contains("negative"),
+     group_gram_morph_map['Gram stain'].str.contains("positive"),
+     group_gram_morph_map['Gram stain'].str.contains("Acid", case=False)],
+    ['Negative', 'Positive', 'Acid-Fast'], 
+    default='Other'
+)
+
+# Read genus group map
+genus_group_map = pd.read_csv(f"{data_path}../genus_species_attribute_map.tsv", delimiter='\t').applymap(lambda x: x.strip()).drop_duplicates()
+
+# Merge genus group map with group gram morph map
+organism_gram_group_map = pd.merge(genus_group_map, group_gram_morph_map, how='left')
+
+```

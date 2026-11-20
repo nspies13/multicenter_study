@@ -1,0 +1,23 @@
+# R and RStudio session files
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Operating-system files
+.DS_Store
+
+# targets pipeline cache
+_targets/
+
+# Local renv installations (renv.lock and activation files are tracked)
+renv/library/
+renv/staging/
+renv/python/
+
+# Rendered or generated analysis artifacts
+*.html
+*.pdf
+*.png
+*.svg
+*.docx
