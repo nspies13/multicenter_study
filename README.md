@@ -1,15 +1,10 @@
 # Multicenter study analysis
 
-Analysis code used for the multicenter study manuscript. The primary workflow is an R [`targets`](https://books.ropensci.org/targets/) pipeline defined in `_targets.R`; supporting plotting and table functions are in `R/`.
+Analysis code used for the manuscript, "Performance of Gram Stain Characteristics for Predicting Culture Growth in Lower Respiratory Specimens Across Multiple Institutions". The primary workflow is an R [`targets`](https://books.ropensci.org/targets/) pipeline defined in `_targets.R`; supporting plotting and table functions are in `R/`.
 
 ## Data availability
 
-Participant-level source data and derived analysis data are not included in this repository. They must be obtained through the study's approved data-access process. The pipeline expects the following derived files in a local data directory:
-
-- `gram_stain_general_input.csv`
-- `gram_stain_results_input.rds`
-- `culture_gram_results_joined.rds`
-- `culture_gram_join_by_subject.rds`
+Participant-level source data and derived analysis data are not included in this repository, but can be shared upon reasonable request to the corresponding author, Carey-Ann Burnham <carey-ann@pattern.bio>. 
 
 ## Reproducing the analysis
 
